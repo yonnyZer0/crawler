@@ -76,6 +76,13 @@ Act supports following crawler configuration attributes (for documentation see h
 | dumpio                | `Boolean`  | true    |          | If `true` then Chrome console log will be piped into act run log. |
 | saveSimplifiedResults | `Boolean`  | false   |          | If `true` then also simplified version of results will be outputted. |
 | fullStackTrace        | `Boolean`  | false   |          | If `true` then `request.errorInfo` and act log will contain full stack trace of each error. |
+| gotoOptions           | `Object`   | {}      |          | Options used by Puppeteers `page.goto(url, options)`. You can use for example `{ waitUntil: 'networkidle0' }` to wait for all network connections to be finished. |
+| hostFunction          | `String`   |         |          | Similar to page function but it's executed in context of host process. It's async function and parameters are Puppeteer's page object, request object, context methods (as enqueuePage) and crawler config. Example value to get html of all iframes: ```javascript
+function hostFunction(page, request, context, config) {
+  context.enqueuePage({ url: 'http://example.com' });
+  const getFrameContent = frame => frame.evaluate(() => document.body.innerHTML);
+  return Promise.all(page.frames().map(getFrameContent)); }
+```| 
 
 ## Local usage
 

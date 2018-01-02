@@ -205,6 +205,19 @@ export const executePageFunction = async (page, crawlerConfig) => {
     }, crawlerConfig);
 };
 
+export const executeHostFunction = async (page, request, contextMethods, crawlerConfig) => {
+    let hostFunction;
+
+    try {
+        hostFunction = eval(`(async ${crawlerConfig.hostFunction})`); // eslint-disable-line no-eval
+    } catch (err) {
+        logError('Cannot parse host function', err);
+        throw err;
+    }
+
+    return hostFunction(page, request, contextMethods, crawlerConfig);
+};
+
 /**
  * Searches for all links matching clickableElementsSelector selector and enqueues
  * their target urls using exposed window.APIFY_CONTEXT.enqueuePage().

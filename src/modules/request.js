@@ -79,9 +79,13 @@ export const PROPERTIES = [
     // If there were any redirects, the status and headers correspond to the finally loaded page, not the intermediate responses.
     'responseStatus',
     'responseHeaders',
-    // Date and time when the page function started and finished
+    // Date and time when the page/host function started and finished and result
     'pageFunctionStartedAt',
     'pageFunctionFinishedAt',
+    'pageFunctionResult',
+    'hostFunctionStartedAt',
+    'hostFunctionFinishedAt',
+    'hostFunctionResult',
     // Describes the type of the request. It can be either one of the following values:
     // 'InitialAboutBlank', 'StartUrl', 'SingleUrl', 'ActorRequest', 'OnUrlChanged', 'UserEnqueued', 'FoundLink'
     // or in case the request originates from PhantomJS' onNavigationRequested() it can be one of the following values:
@@ -90,8 +94,6 @@ export const PROPERTIES = [
     'type',
     // How many links away from start URLs was this page found
     'depth',
-    // Results of the user-provided 'pageFunction'
-    'pageFunctionResult',
     // A field that might be used by 'interceptRequest' function to save custom data related to this page request
     'interceptRequestData',
     // Total size of all resources downloaded during this request

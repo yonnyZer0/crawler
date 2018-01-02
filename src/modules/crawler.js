@@ -42,7 +42,7 @@ export default class Crawler extends EventEmitter {
         super();
         this.crawlerConfig = crawlerConfig;
         this.browser = null;
-        this.gotoOptions = {};
+        this.gotoOptions = crawlerConfig.gotoOptions || {};
         this.browsers = [];
         this.browserPosition = 0;
         this.requestsInProgress = _.times(crawlerConfig.browserInstanceCount, () => 0);
@@ -53,7 +53,7 @@ export default class Crawler extends EventEmitter {
             throw new Error('"browserInstanceCount * maxCrawledPagesPerSlave" must be higher than "maxParallelRequests"!!!!');
         }
 
-        if (crawlerConfig.pageLoadTimeout) {
+        if (crawlerConfig.pageLoadTimeout && !this.gotoOptions.timeout) {
             this.gotoOptions.timeout = crawlerConfig.pageLoadTimeout;
         }
 
@@ -94,8 +94,8 @@ export default class Crawler extends EventEmitter {
     }
 
     async _launchPuppeteer() {
-        const config = Object.assign({}, PUPPETEER_CONFIG);
-        const { customProxies, userAgent, dumpio, disableWebSecurity } = this.crawlerConfig;
+        const { customProxies, userAgent, dumpio, disableWebSecurity, headless } = this.crawlerConfig;
+        const config = Object.assign({}, PUPPETEER_CONFIG, { headless });
 
         if (customProxies && customProxies.length) {
             config.proxyUrl = customProxies[this.customProxiesPosition];
@@ -317,9 +317,29 @@ export default class Crawler extends EventEmitter {
         await utils.clickClickables(page, this.crawlerConfig.clickableElementsSelector);
 
         request.pageFunctionStartedAt = new Date();
-        request.pageFunctionResult = await utils.executePageFunction(page, this.crawlerConfig);
-        request.pageFunctionFinishedAt = new Date();
+        const pageFunctionPromise = utils
+            .executePageFunction(page, this.crawlerConfig)
+            .then((result) => {
+                request.pageFunctionResult = result;
+                request.pageFunctionFinishedAt = new Date();
+            });
 
+        let hostFunctionPromise;
+        if (this.crawlerConfig.hostFunction) {
+            logDebug('Running host function');
+            request.hostFunctionStartedAt = new Date();
+            hostFunctionPromise = utils
+                .executeHostFunction(page, request, contextMethods, this.crawlerConfig)
+                .then((result) => {
+                    request.hostFunctionResult = result;
+                    request.hostFunctionFinishedAt = new Date();
+                });
+        } else {
+            hostFunctionPromise = Promise.resolve();
+        }
+
+
+        await Promise.all([pageFunctionPromise, hostFunctionPromise]);
         await Promise.all(beforeEndPromises);
     }
 }
