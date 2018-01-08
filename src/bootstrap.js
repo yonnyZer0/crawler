@@ -27,8 +27,8 @@ process.on('unhandledRejection', err => logError('Unhanled promise rejection', e
 
 const INPUT_DEFAULTS = {
     maxPageRetryCount: 3,
-    minParallelRequests: 1,
-    maxParallelRequests: 1,
+    minParallelRequests: 10,
+    maxParallelRequests: 10,
     maxCrawledPagesPerSlave: 50,
     maxPagesPerFile: 1000,
     browserInstanceCount: (NODE_ENV === 'production') ? 10 : 1,
